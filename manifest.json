@@ -1,0 +1,15 @@
+{
+  "name": "Item Rate Calculator Pro",
+  "short_name": "RateCalc",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "https://unpkg.com/lucide-static@0.321.0/icons/calculator.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

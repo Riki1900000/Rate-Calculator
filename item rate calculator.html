@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+
+
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Item Rate Calculator Pro</title>
+  <!-- Google Fonts & Lucide Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- html2canvas & jsPDF for Image and PDF Export without external server -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 40px;
+    }
+
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow);
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      background: var(--primary);
+      color: white;
+      padding: 0.6rem;
+      border-radius: 10px;
+      display: flex;
+    }
+
+    .brand h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--text);
+    }
+
+    .protection-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 0.4rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      border: 1px solid rgba(37,99,235,0.15);
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1.4fr 1fr;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s;
+      background: #fafafa;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+      background: white;
+    }
+
+    .input-row-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 640px) {
+      .input-row-grid {
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+      }
+      .input-row-grid-2 {
+        grid-template-columns: 1.5fr 1fr auto;
+        align-items: end;
+      }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.2rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    .btn-danger { background: #fee2e2; color: var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: white; }
+
+    .btn-secondary { background: #f1f5f9; color: var(--text); }
+    .btn-secondary:hover { background: #e2e8f0; }
+
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
+
+    .btn-sm { padding: 0.35rem 0.65rem; font-size: 0.8rem; border-radius: 6px; }
+
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: #f8fafc;
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background-color: #fafafa; }
+
+    .table-header-action {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .autocomplete-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: var(--shadow-lg);
+      display: none;
+    }
+
+    .autocomplete-item {
+      padding: 0.6rem 0.85rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .autocomplete-item:hover { background: var(--primary-light); color: var(--primary); }
+
+    .summary-card {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: white;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.95rem;
+    }
+
+    .summary-row.total {
+      border-bottom: none;
+      padding-top: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .summary-total-label {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #93c5fd;
+    }
+
+    .summary-total-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+
+    .receipt-box {
+      background: white;
+      border: 1px dashed var(--border);
+      padding: 1.5rem;
+      border-radius: 8px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      color: #1e293b;
+      line-height: 1.4;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2em 0.6em;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 4px;
+    }
+    .badge-diff-plus { background: #dcfce7; color: #166534; }
+    .badge-diff-minus { background: #fee2e2; color: #991b1b; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 750px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .flex-gap { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .empty-state {
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      #printableReceipt, #printableReceipt * { visibility: visible; }
+      #printableReceipt { position: absolute; left: 0; top: 0; width: 100%; border: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="brand-icon">
+          <i data-lucide="calculator"></i>
+        </div>
+        <div>
+          <h1>Item Rate Calculator Pro</h1>
+        </div>
+      </div>
+      <div class="protection-badge">
+        <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+        Browser Protected • Last 30 Days
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    <div class="dashboard-grid">
+      
+      <!-- LEFT COLUMN: Calculator & Workspace -->
+      <div>
+        
+        <!-- Add Item Card -->
+        <div class="card">
+          <div class="card-title">
+            <i data-lucide="plus-circle" class="text-primary"></i> Add New Item
+          </div>
+          
+          <form id="addItemForm" onsubmit="handleAddItem(event)">
+            <!-- Row 1: Basic Item Details -->
+            <div class="input-row-grid">
+              <div class="form-group">
+                <label for="itemName">Item Name</label>
+                <input type="text" id="itemName" placeholder="e.g. Battery, Cable..." autocomplete="off" required oninput="handleItemInput(this.value)" />
+                <div id="autocompleteList" class="autocomplete-list"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="itemPcs">Pcs / Qty</label>
+                <!-- DEFAULT VALUE SET TO 1 -->
+                <input type="number" id="itemPcs" min="1" step="any" value="1" placeholder="1" required />
+              </div>
+
+              <div class="form-group">
+                <label for="itemRate">Rate / Pcs (₹)</label>
+                <input type="number" id="itemRate" min="0" step="any" placeholder="1500" required />
+              </div>
+
+              <div class="form-group">
+                <label for="itemRateConfirm">Confirm Rate (₹)</label>
+                <!-- DUAL RATE CONFIRMATION INPUT -->
+                <input type="number" id="itemRateConfirm" min="0" step="any" placeholder="1500" required />
+              </div>
+            </div>
+
+            <!-- Row 2: Item Level Discount & Action -->
+            <div class="input-row-grid-2" style="display: grid; gap: 1rem; margin-top: 0.5rem;">
+              <div class="form-group">
+                <label>Item Discount (Optional)</label>
+                <div style="display: flex; gap: 0.5rem;">
+                  <select id="itemDiscountType" style="width: 90px;">
+                    <option value="percentage">%</option>
+                    <option value="fixed">₹</option>
+                  </select>
+                  <input type="number" id="itemDiscountValue" min="0" step="any" value="0" placeholder="0" />
+                </div>
+              </div>
+
+              <div></div>
+
+              <div class="form-group">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                  <i data-lucide="plus"></i> Add Item
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Current Calculation Table Card -->
+        <div class="card">
+          <div class="table-header-action">
+            <div class="card-title" style="margin-bottom:0;">
+              <i data-lucide="list"></i> Current Calculation Items
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="confirmResetTable()">
+              <i data-lucide="rotate-ccw"></i> Reset Table
+            </button>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Item Name</th>
+                  <th class="text-right">Pcs</th>
+                  <th class="text-right">Rate/Pcs</th>
+                  <th class="text-right">Item Discount</th>
+                  <th class="text-right">Item Total</th>
+                  <th class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="itemsTableBody">
+                <!-- Dynamic Content -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Discount & Summary Card -->
+        <div class="card">
+          <div class="card-title">
+            <i data-lucide="percent"></i> Overall Discount & Summary
+          </div>
+
+          <div class="input-row-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 1rem;">
+            <div class="form-group">
+              <label>Overall Discount Type</label>
+              <select id="discountType" onchange="calculateTotals()">
+                <option value="percentage">Percentage (%)</option>
+                <option value="fixed">Fixed Amount (₹)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Overall Discount Value</label>
+              <input type="number" id="discountValue" min="0" step="any" value="0" placeholder="0" oninput="calculateTotals()" />
+            </div>
+          </div>
+
+          <!-- Summary Display -->
+          <div class="summary-card">
+            <div class="summary-row">
+              <span>Total Pcs</span>
+              <span id="summaryTotalPcs" style="font-weight: 700;">0</span>
+            </div>
+            <div class="summary-row">
+              <span>Raw Gross Total</span>
+              <span id="summaryGrossTotal">₹0.00</span>
+            </div>
+            <div class="summary-row">
+              <span>Total Item Discounts</span>
+              <span id="summaryItemDiscounts" style="color: #fca5a5;">- ₹0.00</span>
+            </div>
+            <div class="summary-row">
+              <span>Subtotal (After Item Disc.)</span>
+              <span id="summarySubtotal">₹0.00</span>
+            </div>
+            <div class="summary-row">
+              <span>Overall Discount</span>
+              <span id="summaryOverallDiscount" style="color: #fca5a5;">- ₹0.00</span>
+            </div>
+            <div class="summary-row total">
+              <span class="summary-total-label">FINAL TOTAL</span>
+              <span class="summary-total-value" id="summaryFinalTotal">₹0.00</span>
+            </div>
+          </div>
+
+          <div class="flex-gap" style="margin-top: 1.25rem;">
+            <button class="btn btn-primary" onclick="saveCurrentCalculation()" style="flex: 1;">
+              <i data-lucide="save"></i> Save Calculation
+            </button>
+            <button class="btn btn-secondary" onclick="openReceiveCopyModal()">
+              <i data-lucide="receipt"></i> Receive Copy
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Saved Rates & History -->
+      <div>
+
+        <!-- Saved Item Rates Memory Card -->
+        <div class="card">
+          <div class="card-title">
+            <i data-lucide="bookmark"></i> Saved Item Rates (Memory)
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.8rem;">
+            Automatically memorizes latest unit rates. Click an item to quick-fill.
+          </p>
+          <div class="table-container" style="max-height: 220px; overflow-y: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Item Name</th>
+                  <th class="text-right">Latest Rate</th>
+                  <th class="text-right">Updated</th>
+                </tr>
+              </thead>
+              <tbody id="savedRatesBody">
+                <!-- Dynamic Content -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Saved History Calculations Card -->
+        <div class="card">
+          <div class="card-title">
+            <i data-lucide="history"></i> Saved Calculations (History)
+          </div>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.8rem;">
+            Stored locally for 30 days. Select Compare A and B to analyze differences.
+          </p>
+          <div class="table-container" style="max-height: 380px; overflow-y: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date & Details</th>
+                  <th class="text-right">Total</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="historyBody">
+                <!-- Dynamic Content -->
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top: 1rem;">
+            <button class="btn btn-outline" style="width: 100%;" onclick="triggerCompareModal()">
+              <i data-lucide="columns"></i> Open Comparison Tool
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RECEIVE COPY MODAL -->
+  <div id="receiveCopyModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="card-title" style="margin:0;"><i data-lucide="receipt"></i> Receive Copy Export</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('receiveCopyModal')">✕</button>
+      </div>
+
+      <div class="receipt-box" id="printableReceipt">
+        <!-- Text content auto-generated -->
+      </div>
+
+      <div class="flex-gap" style="margin-top: 1.25rem;">
+        <button class="btn btn-secondary" onclick="copyReceiptToClipboard()">
+          <i data-lucide="copy"></i> Copy to Clipboard
+        </button>
+        <button class="btn btn-primary" onclick="exportReceiptPDF()">
+          <i data-lucide="file-text"></i> Save as PDF / Print
+        </button>
+        <button class="btn btn-outline" onclick="exportReceiptImage()">
+          <i data-lucide="image"></i> Save as PNG Image
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPARISON MODAL -->
+  <div id="compareModal" class="modal">
+    <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-header">
+        <h3 class="card-title" style="margin:0;"><i data-lucide="git-compare"></i> Side-by-Side Calculation Comparison</h3>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('compareModal')">✕</button>
+      </div>
+
+      <div class="input-row-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 1rem;">
+        <div class="form-group">
+          <label>Calculation A</label>
+          <select id="compareSelectA" onchange="renderComparison()"></select>
+        </div>
+        <div class="form-group">
+          <label>Calculation B</label>
+          <select id="compareSelectB" onchange="renderComparison()"></select>
+        </div>
+      </div>
+
+      <div id="comparisonResultArea">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    const STORAGE_KEYS = {
+      ITEMS_MEMORY: 'IRCP_SavedRates_v1',
+      CALCULATIONS_HISTORY: 'IRCP_CalcHistory_v1'
+    };
+
+    // State
+    let currentCalculationItems = [];
+    let savedRates = {}; 
+    let calculationHistory = []; 
+    let compareSelection = { idA: null, idB: null };
+
+    // Format Currency Helper
+    const formatCurrency = (val) => {
+      return '₹' + Number(val || 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    };
+
+    // Format Date
+    const formatDate = (isoString) => {
+      const d = new Date(isoString);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + ' ' +
+             d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    };
+
+    // Cookie Utilities
+    function setCookie(name, value, days = 30) {
+      const d = new Date();
+      d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+      document.cookie = `${name}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/;SameSite=Strict`;
+    }
+
+    // INITIALIZATION
+    window.addEventListener('DOMContentLoaded', () => {
+      loadStoredData();
+      purgeOldCalculations();
+      renderCurrentItemsTable();
+      renderSavedRates();
+      renderHistoryTable();
+      calculateTotals();
+      lucide.createIcons();
+    });
+
+    // Safely load data from localStorage
+    function loadStoredData() {
+      try {
+        const ratesData = localStorage.getItem(STORAGE_KEYS.ITEMS_MEMORY);
+        savedRates = ratesData ? JSON.parse(ratesData) : {};
+      } catch (e) {
+        console.error('Corrupted LocalStorage rates data recovered.', e);
+        savedRates = {};
+      }
+
+      try {
+        const historyData = localStorage.getItem(STORAGE_KEYS.CALCULATIONS_HISTORY);
+        calculationHistory = historyData ? JSON.parse(historyData) : [];
+      } catch (e) {
+        console.error('Corrupted LocalStorage history data recovered.', e);
+        calculationHistory = [];
+      }
+    }
+
+    function saveRatesToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.ITEMS_MEMORY, JSON.stringify(savedRates));
+        renderSavedRates();
+      } catch (e) {
+        console.error('Failed to save rates to LocalStorage', e);
+      }
+    }
+
+    function saveHistoryToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.CALCULATIONS_HISTORY, JSON.stringify(calculationHistory));
+        setCookie('IRCP_Meta', JSON.stringify({
+          count: calculationHistory.length,
+          lastUpdated: new Date().toISOString()
+        }), 30);
+        renderHistoryTable();
+      } catch (e) {
+        console.error('Failed to save history to LocalStorage', e);
+      }
+    }
+
+    // Purge Calculations older than 30 Days
+    function purgeOldCalculations() {
+      const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+      const initialLength = calculationHistory.length;
+      calculationHistory = calculationHistory.filter(calc => {
+        const calcTime = new Date(calc.dateTime).getTime();
+        return calcTime >= thirtyDaysAgo;
+      });
+
+      if (calculationHistory.length !== initialLength) {
+        saveHistoryToStorage();
+      }
+    }
+
+    // Auto-complete input handler
+    function handleItemInput(val) {
+      const listContainer = document.getElementById('autocompleteList');
+      listContainer.innerHTML = '';
+      if (!val.trim()) {
+        listContainer.style.display = 'none';
+        return;
+      }
+
+      const matches = Object.keys(savedRates).filter(item => 
+        item.toLowerCase().includes(val.toLowerCase())
+      );
+
+      if (matches.length === 0) {
+        listContainer.style.display = 'none';
+        return;
+      }
+
+      matches.forEach(itemKey => {
+        const itemData = savedRates[itemKey];
+        const div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.innerHTML = `
+          <span>${itemKey}</span>
+          <span style="font-weight:600; color:var(--primary);">${formatCurrency(itemData.rate)}</span>
+        `;
+        div.onclick = () => {
+          document.getElementById('itemName').value = itemKey;
+          document.getElementById('itemRate').value = itemData.rate;
+          document.getElementById('itemRateConfirm').value = itemData.rate;
+          listContainer.style.display = 'none';
+          document.getElementById('itemPcs').focus();
+        };
+        listContainer.appendChild(div);
+      });
+
+      listContainer.style.display = 'block';
+
+      const exactMatch = Object.keys(savedRates).find(
+        key => key.toLowerCase() === val.trim().toLowerCase()
+      );
+      if (exactMatch) {
+        document.getElementById('itemRate').value = savedRates[exactMatch].rate;
+        document.getElementById('itemRateConfirm').value = savedRates[exactMatch].rate;
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#itemName') && !e.target.closest('#autocompleteList')) {
+        document.getElementById('autocompleteList').style.display = 'none';
+      }
+    });
+
+    // Add Item to Current Calculation
+    function handleAddItem(e) {
+      e.preventDefault();
+      const nameInput = document.getElementById('itemName');
+      const pcsInput = document.getElementById('itemPcs');
+      const rateInput = document.getElementById('itemRate');
+      const rateConfirmInput = document.getElementById('itemRateConfirm');
+      const itemDiscTypeSelect = document.getElementById('itemDiscountType');
+      const itemDiscValueInput = document.getElementById('itemDiscountValue');
+
+      const name = nameInput.value.trim();
+      const pcs = parseFloat(pcsInput.value);
+      const rate = parseFloat(rateInput.value);
+      const rateConfirm = parseFloat(rateConfirmInput.value);
+
+      // Validation
+      if (!name) {
+        alert('Please enter a valid Item Name.');
+        return;
+      }
+      if (isNaN(pcs) || pcs <= 0) {
+        alert('Please enter a valid Quantity / Pcs greater than 0.');
+        return;
+      }
+      if (isNaN(rate) || rate < 0) {
+        alert('Please enter a valid Rate.');
+        return;
+      }
+
+      // DUAL RATE CONFIRMATION CHECK
+      if (rate !== rateConfirm) {
+        alert('Item Rate and Confirm Rate do not match! Please check and enter the rate again.');
+        rateConfirmInput.focus();
+        return;
+      }
+
+      const grossTotal = pcs * rate;
+
+      // Calculate Item Level Discount
+      let itemDiscType = itemDiscTypeSelect.value;
+      let itemDiscValue = parseFloat(itemDiscValueInput.value) || 0;
+      let itemDiscAmount = 0;
+
+      if (itemDiscValue > 0) {
+        if (itemDiscType === 'percentage') {
+          if (itemDiscValue > 100) itemDiscValue = 100;
+          itemDiscAmount = (grossTotal * itemDiscValue) / 100;
+        } else {
+          if (itemDiscValue > grossTotal) itemDiscValue = grossTotal;
+          itemDiscAmount = itemDiscValue;
+        }
+      }
+
+      const netTotal = Math.max(0, grossTotal - itemDiscAmount);
+
+      // Add item to list
+      currentCalculationItems.push({
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+        name,
+        pcs,
+        rate,
+        grossTotal,
+        itemDiscType,
+        itemDiscValue,
+        itemDiscAmount,
+        total: netTotal
+      });
+
+      // Update Rate Memory
+      const existingKey = Object.keys(savedRates).find(
+        k => k.toLowerCase() === name.toLowerCase()
+      ) || name;
+
+      savedRates[existingKey] = {
+        rate: rate,
+        updatedAt: new Date().toISOString()
+      };
+      saveRatesToStorage();
+
+      // Reset Form (DEFAULT PCS RESET BACK TO 1)
+      nameInput.value = '';
+      pcsInput.value = '1';
+      rateInput.value = '';
+      rateConfirmInput.value = '';
+      itemDiscValueInput.value = '0';
+      nameInput.focus();
+
+      renderCurrentItemsTable();
+      calculateTotals();
+    }
+
+    // Render Current Calculation Table
+    function renderCurrentItemsTable() {
+      const tbody = document.getElementById('itemsTableBody');
+      tbody.innerHTML = '';
+
+      if (currentCalculationItems.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">No items added yet. Add items above to compute.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      currentCalculationItems.forEach((item) => {
+        const tr = document.createElement('tr');
+        const discText = item.itemDiscAmount > 0 
+          ? `- ${formatCurrency(item.itemDiscAmount)} (${item.itemDiscType === 'percentage' ? item.itemDiscValue + '%' : '₹'})`
+          : '-';
+
+        tr.innerHTML = `
+          <td style="font-weight:600;">${item.name}</td>
+          <td class="text-right">${item.pcs}</td>
+          <td class="text-right">${formatCurrency(item.rate)}</td>
+          <td class="text-right" style="color: ${item.itemDiscAmount > 0 ? 'var(--danger)' : 'inherit'};">${discText}</td>
+          <td class="text-right" style="font-weight:600;">${formatCurrency(item.total)}</td>
+          <td class="text-center">
+            <button class="btn btn-danger btn-sm" onclick="removeItem('${item.id}')">
+              <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Remove
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    // Remove single item
+    function removeItem(id) {
+      currentCalculationItems = currentCalculationItems.filter(item => item.id !== id);
+      renderCurrentItemsTable();
+      calculateTotals();
+    }
+
+    // Reset Table
+    function confirmResetTable() {
+      if (currentCalculationItems.length === 0) return;
+      if (confirm('Are you sure you want to clear the current calculation table? This will not affect saved history or rate memories.')) {
+        currentCalculationItems = [];
+        renderCurrentItemsTable();
+        calculateTotals();
+      }
+    }
+
+    // Calculate Totals & Overall Discount
+    function calculateTotals() {
+      const grossTotal = currentCalculationItems.reduce((acc, item) => acc + (item.grossTotal || item.pcs * item.rate), 0);
+      const totalItemDiscounts = currentCalculationItems.reduce((acc, item) => acc + (item.itemDiscAmount || 0), 0);
+      const subtotal = Math.max(0, grossTotal - totalItemDiscounts);
+      const totalPcs = currentCalculationItems.reduce((acc, item) => acc + item.pcs, 0);
+
+      const discountType = document.getElementById('discountType').value;
+      let discountVal = parseFloat(document.getElementById('discountValue').value) || 0;
+
+      if (discountVal < 0) {
+        discountVal = 0;
+        document.getElementById('discountValue').value = 0;
+      }
+
+      let overallDiscountAmount = 0;
+      if (discountType === 'percentage') {
+        if (discountVal > 100) {
+          discountVal = 100;
+          document.getElementById('discountValue').value = 100;
+        }
+        overallDiscountAmount = (subtotal * discountVal) / 100;
+      } else {
+        if (discountVal > subtotal) {
+          discountVal = subtotal;
+          document.getElementById('discountValue').value = subtotal;
+        }
+        overallDiscountAmount = discountVal;
+      }
+
+      const finalTotal = Math.max(0, subtotal - overallDiscountAmount);
+
+      // Render Summary
+      document.getElementById('summaryTotalPcs').innerText = totalPcs;
+      document.getElementById('summaryGrossTotal').innerText = formatCurrency(grossTotal);
+      document.getElementById('summaryItemDiscounts').innerText = `- ${formatCurrency(totalItemDiscounts)}`;
+      document.getElementById('summarySubtotal').innerText = formatCurrency(subtotal);
+      document.getElementById('summaryOverallDiscount').innerText = `- ${formatCurrency(overallDiscountAmount)}`;
+      document.getElementById('summaryFinalTotal').innerText = formatCurrency(finalTotal);
+
+      return { grossTotal, totalItemDiscounts, subtotal, totalPcs, discountType, discountVal, overallDiscountAmount, finalTotal };
+    }
+
+    // Save Current Calculation
+    function saveCurrentCalculation() {
+      if (currentCalculationItems.length === 0) {
+        alert('Add at least one item before saving calculation.');
+        return;
+      }
+
+      const totals = calculateTotals();
+      const newCalc = {
+        id: 'calc_' + Date.now(),
+        dateTime: new Date().toISOString(),
+        items: JSON.parse(JSON.stringify(currentCalculationItems)),
+        grossTotal: totals.grossTotal,
+        totalItemDiscounts: totals.totalItemDiscounts,
+        subtotal: totals.subtotal,
+        totalPcs: totals.totalPcs,
+        discountType: totals.discountType,
+        discountValue: totals.discountVal,
+        discountAmount: totals.overallDiscountAmount,
+        finalTotal: totals.finalTotal
+      };
+
+      calculationHistory.unshift(newCalc);
+      saveHistoryToStorage();
+      alert('Calculation saved successfully!');
+    }
+
+    // Render Saved Rates Memory Table
+    function renderSavedRates() {
+      const tbody = document.getElementById('savedRatesBody');
+      tbody.innerHTML = '';
+
+      const keys = Object.keys(savedRates);
+      if (keys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No saved item rates yet.</td></tr>`;
+        return;
+      }
+
+      keys.forEach(itemName => {
+        const data = savedRates[itemName];
+        const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.onclick = () => {
+          document.getElementById('itemName').value = itemName;
+          document.getElementById('itemRate').value = data.rate;
+          document.getElementById('itemRateConfirm').value = data.rate;
+          document.getElementById('itemPcs').focus();
+        };
+        tr.innerHTML = `
+          <td style="font-weight:600; color:var(--primary);">${itemName}</td>
+          <td class="text-right" style="font-weight:600;">${formatCurrency(data.rate)}</td>
+          <td class="text-right" style="font-size:0.75rem; color:var(--text-muted);">${formatDate(data.updatedAt)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render Saved History Table
+    function renderHistoryTable() {
+      const tbody = document.getElementById('historyBody');
+      tbody.innerHTML = '';
+
+      if (calculationHistory.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="empty-state">No saved calculation history.</td></tr>`;
+        return;
+      }
+
+      calculationHistory.forEach((calc) => {
+        const tr = document.createElement('tr');
+        const itemCount = calc.items.length;
+        const summaryText = calc.items.map(i => i.name).slice(0, 2).join(', ') + (itemCount > 2 ? ` +${itemCount-2} more` : '');
+
+        tr.innerHTML = `
+          <td>
+            <div style="font-size:0.8rem; font-weight:600;">${formatDate(calc.dateTime)}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">${summaryText} (${calc.totalPcs} pcs)</div>
+          </td>
+          <td class="text-right" style="font-weight:700; color:var(--primary);">${formatCurrency(calc.finalTotal)}</td>
+          <td class="text-center">
+            <div class="flex-gap" style="justify-content:center;">
+              <button class="btn btn-secondary btn-sm" title="Load into current workspace" onclick="loadCalculation('${calc.id}')">Load</button>
+              <button class="btn btn-outline btn-sm" title="Set Compare A" onclick="setCompareTarget('${calc.id}', 'A')">A</button>
+              <button class="btn btn-outline btn-sm" title="Set Compare B" onclick="setCompareTarget('${calc.id}', 'B')">B</button>
+              <button class="btn btn-danger btn-sm" title="Delete" onclick="deleteHistoryItem('${calc.id}')">
+                <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    // Load old calculation into current table
+    function loadCalculation(id) {
+      const calc = calculationHistory.find(c => c.id === id);
+      if (!calc) return;
+
+      if (currentCalculationItems.length > 0) {
+        if (!confirm('Loading this calculation will overwrite your current unsaved table. Continue?')) {
+          return;
+        }
+      }
+
+      currentCalculationItems = JSON.parse(JSON.stringify(calc.items));
+      document.getElementById('discountType').value = calc.discountType || 'percentage';
+      document.getElementById('discountValue').value = calc.discountValue || 0;
+
+      renderCurrentItemsTable();
+      calculateTotals();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Delete single History calculation
+    function deleteHistoryItem(id) {
+      if (confirm('Delete this saved calculation from history?')) {
+        calculationHistory = calculationHistory.filter(c => c.id !== id);
+        saveHistoryToStorage();
+      }
+    }
+
+    // COMPARISON FEATURE LOGIC
+    function setCompareTarget(id, target) {
+      if (target === 'A') compareSelection.idA = id;
+      if (target === 'B') compareSelection.idB = id;
+      triggerCompareModal();
+    }
+
+    function triggerCompareModal() {
+      if (calculationHistory.length < 2) {
+        alert('You need at least 2 saved calculations in history to compare.');
+        return;
+      }
+
+      if (!compareSelection.idA) compareSelection.idA = calculationHistory[0].id;
+      if (!compareSelection.idB) compareSelection.idB = calculationHistory[1]?.id || calculationHistory[0].id;
+
+      const selectA = document.getElementById('compareSelectA');
+      const selectB = document.getElementById('compareSelectB');
+
+      selectA.innerHTML = '';
+      selectB.innerHTML = '';
+
+      calculationHistory.forEach(calc => {
+        const optionText = `${formatDate(calc.dateTime)} - (${formatCurrency(calc.finalTotal)})`;
+        selectA.innerHTML += `<option value="${calc.id}" ${calc.id === compareSelection.idA ? 'selected' : ''}>${optionText}</option>`;
+        selectB.innerHTML += `<option value="${calc.id}" ${calc.id === compareSelection.idB ? 'selected' : ''}>${optionText}</option>`;
+      });
+
+      renderComparison();
+      openModal('compareModal');
+    }
+
+    function renderComparison() {
+      const idA = document.getElementById('compareSelectA').value;
+      const idB = document.getElementById('compareSelectB').value;
+
+      compareSelection.idA = idA;
+      compareSelection.idB = idB;
+
+      const calcA = calculationHistory.find(c => c.id === idA);
+      const calcB = calculationHistory.find(c => c.id === idB);
+
+      if (!calcA || !calcB) return;
+
+      const itemMap = new Map();
+
+      calcA.items.forEach(item => {
+        const key = item.name.toLowerCase();
+        itemMap.set(key, {
+          displayName: item.name,
+          aPcs: item.pcs,
+          aRate: item.rate,
+          aTotal: item.total,
+          bPcs: 0,
+          bRate: 0,
+          bTotal: 0
+        });
+      });
+
+      calcB.items.forEach(item => {
+        const key = item.name.toLowerCase();
+        if (itemMap.has(key)) {
+          const existing = itemMap.get(key);
+          existing.bPcs = item.pcs;
+          existing.bRate = item.rate;
+          existing.bTotal = item.total;
+        } else {
+          itemMap.set(key, {
+            displayName: item.name,
+            aPcs: 0,
+            aRate: 0,
+            aTotal: 0,
+            bPcs: item.pcs,
+            bRate: item.rate,
+            bTotal: item.total
+          });
+        }
+      });
+
+      const resultArea = document.getElementById('comparisonResultArea');
+      let tableRows = '';
+
+      itemMap.forEach((data) => {
+        const rateDiff = data.bRate - data.aRate;
+        let rateDiffBadge = '-';
+        if (data.aRate > 0 && data.bRate > 0) {
+          if (rateDiff > 0) {
+            rateDiffBadge = `<span class="badge badge-diff-minus">+${formatCurrency(rateDiff)}</span>`;
+          } else if (rateDiff < 0) {
+            rateDiffBadge = `<span class="badge badge-diff-plus">${formatCurrency(rateDiff)}</span>`;
+          } else {
+            rateDiffBadge = `<span class="badge" style="background:#f1f5f9; color:#475569;">No change</span>`;
+          }
+        }
+
+        tableRows += `
+          <tr>
+            <td style="font-weight:600;">${data.displayName}</td>
+            <td class="text-right">${data.aPcs || '-'}</td>
+            <td class="text-right">${data.aRate ? formatCurrency(data.aRate) : '-'}</td>
+            <td class="text-right">${data.bPcs || '-'}</td>
+            <td class="text-right">${data.bRate ? formatCurrency(data.bRate) : '-'}</td>
+            <td class="text-right">${rateDiffBadge}</td>
+          </tr>
+        `;
+      });
+
+      const totalGap = calcB.finalTotal - calcA.finalTotal;
+      let gapText = '';
+      if (totalGap > 0) {
+        gapText = `<span style="color:var(--danger); font-weight:700;">+${formatCurrency(totalGap)} (B is Higher)</span>`;
+      } else if (totalGap < 0) {
+        gapText = `<span style="color:var(--success); font-weight:700;">${formatCurrency(totalGap)} (B is Lower)</span>`;
+      } else {
+        gapText = `<span style="color:var(--text-muted); font-weight:700;">₹0.00 (Identical Total)</span>`;
+      }
+
+      resultArea.innerHTML = `
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Item Name</th>
+                <th class="text-right">A Pcs</th>
+                <th class="text-right">A Rate</th>
+                <th class="text-right">B Pcs</th>
+                <th class="text-right">B Rate</th>
+                <th class="text-right">Rate Difference</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top: 1.25rem; background:#f8fafc; padding:1.25rem; border-radius:8px; border:1px solid var(--border);">
+          <div class="summary-row" style="color:var(--text); border-bottom: 1px solid var(--border);">
+            <span>Calculation A Final Total:</span>
+            <strong>${formatCurrency(calcA.finalTotal)}</strong>
+          </div>
+          <div class="summary-row" style="color:var(--text); border-bottom: 1px solid var(--border);">
+            <span>Calculation B Final Total:</span>
+            <strong>${formatCurrency(calcB.finalTotal)}</strong>
+          </div>
+          <div class="summary-row" style="color:var(--text); border-bottom: none; font-size:1.1rem; padding-top:0.75rem;">
+            <span>TOTAL AMOUNT GAP:</span>
+            <div>${gapText}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // RECEIVE COPY EXPORT LOGIC
+    function openReceiveCopyModal() {
+      if (currentCalculationItems.length === 0) {
+        alert('Please add items to generate a receive copy.');
+        return;
+      }
+
+      const receiptBox = document.getElementById('printableReceipt');
+      const totals = calculateTotals();
+      const nowStr = new Date().toLocaleString('en-IN');
+
+      let text = `================================================
+RECEIVE COPY - ITEM RATE CALCULATOR PRO
+Date & Time: ${nowStr}
+================================================
+`;
+      text += `Item`.padEnd(16) + `Pcs`.padEnd(6) + `Rate`.padEnd(10) + `Disc`.padEnd(8) + `Total\n`;
+      text += `------------------------------------------------\n`;
+
+      currentCalculationItems.forEach(item => {
+        const nameStr = item.name.length > 14 ? item.name.substring(0, 13) + '…' : item.name;
+        const discStr = item.itemDiscAmount > 0 ? `₹${item.itemDiscAmount.toFixed(0)}` : `-`;
+        text += nameStr.padEnd(16) +
+                item.pcs.toString().padEnd(6) +
+                `₹${item.rate}`.padEnd(10) +
+                discStr.padEnd(8) +
+                `₹${item.total.toFixed(2)}\n`;
+      });
+
+      text += `------------------------------------------------\n`;
+      text += `Total Pcs          : ${totals.totalPcs}\n`;
+      text += `Gross Total        : ₹${totals.grossTotal.toFixed(2)}\n`;
+      text += `Item Discounts     : -₹${totals.totalItemDiscounts.toFixed(2)}\n`;
+      text += `Subtotal           : ₹${totals.subtotal.toFixed(2)}\n`;
+      text += `Overall Discount   : -₹${totals.overallDiscountAmount.toFixed(2)}\n`;
+      text += `================================================\n`;
+      text += `FINAL TOTAL        : ₹${totals.finalTotal.toFixed(2)}\n`;
+      text += `================================================\n`;
+
+      receiptBox.innerText = text;
+      openModal('receiveCopyModal');
+    }
+
+    function copyReceiptToClipboard() {
+      const receiptText = document.getElementById('printableReceipt').innerText;
+      navigator.clipboard.writeText(receiptText).then(() => {
+        alert('Receive Copy copied to clipboard!');
+      }).catch(err => {
+        alert('Failed to copy to clipboard.');
+      });
+    }
+
+    function exportReceiptPDF() {
+      window.print();
+    }
+
+    function exportReceiptImage() {
+      const element = document.getElementById('printableReceipt');
+      html2canvas(element).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `Receipt_${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }).catch(err => {
+        alert('Failed to generate image export.');
+      });
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+  </script>
+</body>
+</html>
