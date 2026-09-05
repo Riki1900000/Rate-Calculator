@@ -7,9 +7,16 @@
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "https://unpkg.com/lucide-static@0.321.0/icons/calculator.svg",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml"
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
