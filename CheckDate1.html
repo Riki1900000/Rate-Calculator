@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landscape Date Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #e2e8f0;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: #cbd5e1;
+            
+            --red-bg: #fef2f2;
+            --red-border: #ef4444;
+            --red-text: #991b1b;
+            
+            --green-bg: #f0fdf4;
+            --green-border: #22c55e;
+            --green-text: #166534;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Poppins', -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container { 
+            background: var(--card-bg); 
+            max-width: 980px; 
+            width: 100%; 
+            padding: 24px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+            transition: all 0.3s ease;
+        }
+
+        /* Title & Mode Selector Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        h2 { 
+            color: var(--primary); 
+            font-size: 1.4rem; 
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .mode-container {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 10px;
+            width: 280px;
+        }
+
+        .mode-option { flex: 1; text-align: center; }
+        .mode-option input { display: none; }
+        .mode-option label {
+            display: block;
+            padding: 8px 0;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--muted);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.2s ease;
+        }
+        .mode-option input:checked + label {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 6px rgba(37,99,235,0.25);
+        }
+
+        /* Landscape Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .section-card {
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        /* Input Wrappers with Reset Button */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 6px;
+        }
+
+        input[type="date"], input[type="number"] { 
+            width: 100%; 
+            padding: 9px 12px; 
+            border: 1.5px solid var(--border); 
+            border-radius: 8px; 
+            font-size: 0.9rem; 
+            outline: none;
+            background: #ffffff;
+            transition: border-color 0.2s;
+        }
+
+        input:focus { 
+            border-color: var(--primary); 
+        }
+
+        .btn-reset {
+            background: #e2e8f0;
+            border: none;
+            color: #475569;
+            padding: 0 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover {
+            background: #cbd5e1;
+            color: #0f172a;
+        }
+
+        /* Displays / Output Panels */
+        .display-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: auto;
+        }
+
+        .row { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 0.85rem;
+            padding: 4px 0;
+        }
+        
+        .label-text { color: var(--muted); font-weight: 500; }
+        .val-text { font-weight: 700; color: var(--text); }
+
+        /* Dynamic Status Alert Bar */
+        #status { 
+            margin-top: 16px; 
+            padding: 10px 16px; 
+            border-radius: 10px; 
+            text-align: center; 
+            font-weight: 700; 
+            font-size: 0.85rem; 
+            border: 1.5px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        /* Error / Exceeded Limit Styling */
+        .limit-exceeded {
+            background-color: var(--red-bg) !important;
+            border-color: var(--red-border) !important;
+        }
+
+        .limit-exceeded .section-title {
+            color: var(--red-text) !important;
+        }
+
+        .status-red { background: var(--red-bg); color: var(--red-text); border-color: var(--red-border); }
+        .status-green { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
+
+        @media (max-width: 768px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .top-bar { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .mode-container { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Top Header & Mode Switcher -->
+    <div class="top-bar">
+        <h2>Date Calculator</h2>
+        <div class="mode-container">
+            <div class="mode-option">
+                <input type="radio" id="m3" name="modeLimit" value="3" checked>
+                <label for="m3">3 Months Limit</label>
+            </div>
+            <div class="mode-option">
+                <input type="radio" id="m6" name="modeLimit" value="6">
+                <label for="m6">6 Months Limit</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Landscape Dual Columns -->
+    <div class="main-grid">
+        
+        <!-- SECTION 1: Invoice & Sale Date Gap -->
+        <div class="section-card" id="cardInvSale">
+            <div class="section-title">Invoice to Sale Validation</div>
+
+            <div class="input-group">
+                <label>1. Invoice Date</label>
+                <div class="input-wrapper">
+                    <input type="date" id="invoiceDate">
+                    <button class="btn-reset" onclick="resetDate('invoiceDate')">✕</button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>2. Sale Date</label>
+                <div class="input-wrapper">
+                    <input type="date" id="saleDate">
+                    <button class="btn-reset" onclick="resetDate('saleDate')">✕</button>
+                </div>
+            </div>
+
+            <div class="display-panel">
+                <div class="row">
+                    <span class="label-text">Invoice to Sale Gap:</span>
+                    <span id="invSaleGap" class="val-text">N/A</span>
+                </div>
+                <div class="row">
+                    <span class="label-text">Limit Status:</span>
+                    <span id="gapStatusText" class="val-text">Waiting...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: Insert Date & Incremental Calculations -->
+        <div class="section-card" id="cardInsert">
+            <div class="section-title">Insert Date Age & Extension</div>
+
+            <div class="input-group">
+                <label>3. Insert Date</label>
+                <div class="input-wrapper">
+                    <input type="date" id="insertDate">
+                    <button class="btn-reset" onclick="resetDate('insertDate')">✕</button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <div class="input-group" style="flex: 1;">
+                    <label>Add Months</label>
+                    <input type="number" id="addM" value="0" min="0">
+                </div>
+                <div class="input-group" style="flex: 1;">
+                    <label>Add Days</label>
+                    <input type="number" id="addD" value="0" min="0">
+                </div>
+            </div>
+
+            <div class="display-panel">
+                <div class="row">
+                    <span class="label-text">Insert Age (to Today):</span>
+                    <span id="origDiff" class="val-text">-</span>
+                </div>
+                <div class="row">
+                    <span class="label-text">Adjusted Date:</span>
+                    <span id="adjDate" class="val-text">-</span>
+                </div>
+                <div class="row">
+                    <span class="label-text">Adjusted Age:</span>
+                    <span id="adjDiff" class="val-text">-</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Status Notification -->
+    <div id="status">Ready for calculation</div>
+</div>
+
+<script>
+    // Calculate Month & Day Difference
+    function getDiff(d1, d2) {
+        if (!d1 || !d2 || isNaN(d1.getTime()) || isNaN(d2.getTime())) return { m: 0, d: 0 };
+        
+        if (d1 > d2) {
+            let temp = d1;
+            d1 = d2;
+            d2 = temp;
+        }
+
+        let months = (d2.getFullYear() - d1.getFullYear()) * 12 + d2.getMonth() - d1.getMonth();
+        let days = d2.getDate() - d1.getDate();
+
+        if (days < 0) {
+            months--;
+            let prevMonth = new Date(d2.getFullYear(), d2.getMonth(), 0).getDate();
+            days += prevMonth;
+        }
+
+        return { m: months, d: days };
+    }
+
+    // Reset Specific Date Input
+    function resetDate(id) {
+        document.getElementById(id).value = '';
+        calculate();
+    }
+
+    function calculate() {
+        const invVal = document.getElementById('invoiceDate').value;
+        const saleVal = document.getElementById('saleDate').value;
+        const insVal = document.getElementById('insertDate').value;
+
+        const invDate = invVal ? new Date(invVal) : null;
+        const saleDate = saleVal ? new Date(saleVal) : null;
+        const insDate = insVal ? new Date(insVal) : null;
+        const today = new Date();
+
+        const selectedLimitMode = parseInt(document.querySelector('input[name="modeLimit"]:checked').value);
+        
+        const cardInvSale = document.getElementById('cardInvSale');
+        const cardInsert = document.getElementById('cardInsert');
+        const statusBox = document.getElementById('status');
+
+        let isExceeded = false;
+
+        // 1. Validate Invoice & Sale Gap
+        if (invDate && saleDate) {
+            const gap = getDiff(invDate, saleDate);
+            document.getElementById('invSaleGap').textContent = `${gap.m} Months, ${gap.d} Days`;
+
+            if (gap.m > selectedLimitMode || (gap.m === selectedLimitMode && gap.d > 0)) {
+                isExceeded = true;
+                document.getElementById('gapStatusText').textContent = "Exceeded Limit!";
+                document.getElementById('gapStatusText').style.color = "var(--red-text)";
+            } else {
+                document.getElementById('gapStatusText').textContent = "Within Limit";
+                document.getElementById('gapStatusText').style.color = "var(--green-text)";
+            }
+        } else {
+            document.getElementById('invSaleGap').textContent = "N/A";
+            document.getElementById('gapStatusText').textContent = "Waiting...";
+            document.getElementById('gapStatusText').style.color = "var(--text)";
+        }
+
+        // 2. Insert Date Logic
+        if (insDate) {
+            const initial = getDiff(insDate, today);
+            document.getElementById('origDiff').textContent = `${initial.m}M, ${initial.d}D`;
+
+            const addMonths = parseInt(document.getElementById('addM').value) || 0;
+            const addDays = parseInt(document.getElementById('addD').value) || 0;
+
+            const adjustedDate = new Date(insDate);
+            adjustedDate.setMonth(adjustedDate.getMonth() + addMonths);
+            adjustedDate.setDate(adjustedDate.getDate() + addDays);
+
+            const adjustedAge = getDiff(adjustedDate, today);
+
+            document.getElementById('adjDate').textContent = adjustedDate.toISOString().split('T')[0];
+            document.getElementById('adjDiff').textContent = `${adjustedAge.m}M, ${adjustedAge.d}D`;
+        } else {
+            document.getElementById('origDiff').textContent = "-";
+            document.getElementById('adjDate').textContent = "-";
+            document.getElementById('adjDiff').textContent = "-";
+        }
+
+        // 3. UI Color Status Updates (Turn Red if Date Range Exceeded)
+        statusBox.className = "";
+        
+        if (isExceeded) {
+            cardInvSale.classList.add('limit-exceeded');
+            cardInsert.classList.add('limit-exceeded');
+            statusBox.textContent = `CRITICAL WARNING: Invoice & Sale Gap exceeds the ${selectedLimitMode}-month limit!`;
+            statusBox.classList.add('status-red');
+        } else {
+            cardInvSale.classList.remove('limit-exceeded');
+            cardInsert.classList.remove('limit-exceeded');
+
+            if (invDate && saleDate) {
+                statusBox.textContent = `SUCCESS: Date range validated within ${selectedLimitMode} months limit.`;
+                statusBox.classList.add('status-green');
+            } else {
+                statusBox.textContent = "Select dates to calculate age & validation.";
+            }
+        }
+    }
+
+    // Attach Event Listeners
+    ['invoiceDate', 'saleDate', 'insertDate', 'addM', 'addD'].forEach(id => {
+        document.getElementById(id).addEventListener('input', calculate);
+    });
+
+    document.querySelectorAll('input[name="modeLimit"]').forEach(radio => {
+        radio.addEventListener('change', calculate);
+    });
+</script>
+
+</body>
+</html>
